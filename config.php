@@ -85,7 +85,10 @@ $_CONFIG = array(
     ),
 
     'deniedExts' => "exe com msi bat php phps phtml php3 php4 cgi pl",
-
+    'deniedAcces' => array(
+            "files"=>array(".gitignore",'.htaccess'),
+            "ext"=>array("xml","php","bat","exe"),
+    ),
 
 // MISC SETTINGS
 

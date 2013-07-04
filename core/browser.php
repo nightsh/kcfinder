@@ -703,7 +703,7 @@ class browser extends uploader {
         $thumbDir = "{$this->config['uploadDir']}/{$this->config['thumbsDir']}/$dir";
         $dir = "{$this->config['uploadDir']}/$dir";
         $return = array();
-        $files = dir::content($dir, array('types' => "file"));
+        $files = dir::content($dir, array('types' => "file", 'deniedAcces'  =>  $this->config['deniedAcces']));
         if ($files === false)
             return $return;
 
@@ -799,7 +799,7 @@ class browser extends uploader {
     }
 
     protected function getDirs($dir) {
-        $dirs = dir::content($dir, array('types' => "dir"));
+        $dirs = dir::content($dir, array('types' => "dir", 'deniedAcces'  =>  $this->config['deniedAcces']));
         $return = array();
         if (is_array($dirs)) {
             $writable = dir::isWritable($dir);
