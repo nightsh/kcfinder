@@ -92,6 +92,7 @@ class dir {
         $defaultOptions = array(
             'types' => "all",   // Allowed: "all" or possible return values
                                 // of filetype(), or an array with them
+            'deniedAcces' => false, 
             'addPath' => true,  // Whether to add directory path to filenames
             'pattern' => '/./', // Regular expression pattern for filename
             'followLinks' => true
@@ -117,28 +118,36 @@ class dir {
 
         $files = array();
         while (($file = @readdir($dh)) !== false) {
-            $type = filetype("$dir/$file");
+            $deniedAcces = false;   //init deny
+            
+            if( (is_array($options['deniedAcces']["files"])) && in_array($file,$options['deniedAcces']["files"]) OR (is_array($options['deniedAcces']["ext"])) && in_array(strtolower(file::getExtension($file)),$options['deniedAcces']["ext"]) )
+                $deniedAcces = true ;
 
-            if ($options['followLinks'] && ($type === "link")) {
-                $lfile = "$dir/$file";
-                do {
-                    $ldir = dirname($lfile);
-                    $lfile = @readlink($lfile);
-                    if (substr($lfile, 0, 1) != "/")
-                        $lfile = "$ldir/$lfile";
-                    $type = filetype($lfile);
-                } while ($type == "link");
+            if(!$deniedAcces){
+
+                $type = filetype("$dir/$file");
+
+                if ($options['followLinks'] && ($type === "link")) {
+                    $lfile = "$dir/$file";
+                    do {
+                        $ldir = dirname($lfile);
+                        $lfile = @readlink($lfile);
+                        if (substr($lfile, 0, 1) != "/")
+                            $lfile = "$ldir/$lfile";
+                        $type = filetype($lfile);
+                    } while ($type == "link");
+                }
+
+                if ((($type === "dir") && (($file == ".") || ($file == ".."))) ||
+                    !preg_match($options['pattern'], $file)
+                )
+                    continue;
+
+                if (($options['types'] === "all") || ($type === $options['types']) ||
+                    ((is_array($options['types'])) && in_array($type, $options['types']))
+                )
+                    $files[] = $options['addPath'] ? "$dir/$file" : $file;
             }
-
-            if ((($type === "dir") && (($file == ".") || ($file == ".."))) ||
-                !preg_match($options['pattern'], $file)
-            )
-                continue;
-
-            if (($options['types'] === "all") || ($type === $options['types']) ||
-                ((is_array($options['types'])) && in_array($type, $options['types']))
-            )
-                $files[] = $options['addPath'] ? "$dir/$file" : $file;
         }
         closedir($dh);
         usort($files, array("dir", "fileSort"));
